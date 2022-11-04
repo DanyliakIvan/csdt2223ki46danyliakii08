@@ -14,15 +14,34 @@
 
 #include <QString>
 
+#include <QDate>
+#include <QTime>
+#include <QMessageBox>
+
+#include <QtSerialPort/QSerialPort>
+#include <QtSerialPort/QSerialPortInfo>
+
 class CSDT : public QWidget {
 
   public:
     CSDT(QWidget *parent = 0);
-    QLabel *label1, *label2;
+    QLabel *label1, *label2, *labelERROR;
     QLineEdit *textWrite;
     QPushButton *sendButton, *openButton, *closeButton;
     QComboBox *comboBox;
     QTextBrowser *textShow;
+
+    QString outputBuffer, receiveBuffer;
+
+    QSerialPort *serial;
+
+    ~CSDT();
+
+private:
+    void sendMessage(QString);
+    void receiveMessage();
+    void PREreceiveMessage();
+    QString preparingTextForOutput(QString, QString);
 
 private slots:
     void OnSendPressed();
