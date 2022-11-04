@@ -21,20 +21,21 @@ CSDT::CSDT(QWidget *parent)
 
     //creating fild for sending message
     textWrite = new QLineEdit(this);
-    textWrite->setGeometry(20, 250, 300, 30);
+    textWrite->setGeometry(20, 250, 600, 30);
     textWrite->setFont(QFont("MS Shell diq 2", 12));
+    textWrite->setPlaceholderText("Less than 30 symbols! Rest of message will be rejected!");
 
     //creating comboBox for choice COM port
     comboBox = new QComboBox(this);
-    comboBox->setGeometry(350, 50, 70, 30);
+    comboBox->setGeometry(650, 50, 70, 30);
     comboBox->setFont(QFont("MS Shell diq 2", 10));
     for (int i = 0; i < 100; i++)
         comboBox->addItem("COM" + QString::number(i));
 
     //creating fild for showing sended and received text
     textShow = new QTextBrowser(this);
-    textShow->setGeometry(20, 50, 300, 150);
-    textShow->setFont(QFont("MS Shell diq 2", 10));
+    textShow->setGeometry(20, 50, 600, 150);
+    textShow->setFont(QFont("Consolas", 10));
     textShow->ensureCursorVisible();
 
     //creating some buttons for controling COM ports and sending messages
@@ -42,9 +43,9 @@ CSDT::CSDT(QWidget *parent)
     openButton = new QPushButton("Open", this);
     closeButton = new QPushButton("Close", this);
 
-    sendButton->setGeometry(350, 250, 70, 30);
-    openButton->setGeometry(350, 110, 70, 30);
-    closeButton->setGeometry(350, 160, 70, 30);
+    sendButton->setGeometry(650, 250, 70, 30);
+    openButton->setGeometry(650, 110, 70, 30);
+    closeButton->setGeometry(650, 170, 70, 30);
 
     sendButton->setFont(QFont("MS Shell diq 2", 12));
     openButton->setFont(QFont("MS Shell diq 2", 12));
@@ -64,8 +65,9 @@ void CSDT::OnSendPressed()
 {
     QString message;
     message = textWrite->text();
+    message = message.left(30);
     sendMessage(message);
-    serial->waitForReadyRead(300);
+    serial->waitForReadyRead(350);
 
     outputBuffer = preparingTextForOutput(message, "sended");
     outputBuffer += preparingTextForOutput(receiveBuffer, "received");
@@ -131,7 +133,7 @@ QString CSDT::preparingTextForOutput(QString message, QString sendedOrReceive)
     outputMessage.append("[" + QDate::currentDate().toString(Qt::ISODate));
     outputMessage.append("] [");
     outputMessage.append(QTime::currentTime().toString(Qt::ISODate));
-    outputMessage.append((sendedOrReceive == "sended")?("] [sended]:  "):("] [received]: "));
+    outputMessage.append((sendedOrReceive == "sended")?("] [sended]:   "):("] [received]: "));
     outputMessage.append(message);
     if(sendedOrReceive == "sended")
         outputMessage.append("\n");

@@ -23,8 +23,11 @@
 
 class CSDT : public QWidget {
 
-  public:
+public:
     CSDT(QWidget *parent = 0);
+    ~CSDT();
+
+private:
     QLabel *label1, *label2, *labelERROR;
     QLineEdit *textWrite;
     QPushButton *sendButton, *openButton, *closeButton;
@@ -35,9 +38,7 @@ class CSDT : public QWidget {
 
     QSerialPort *serial;
 
-    ~CSDT();
 
-private:
     void sendMessage(QString);
     void receiveMessage();
     void PREreceiveMessage();
