@@ -1,0 +1,1 @@
+"$(vswhere -property installationPath)\Common7\IDE\Extensions\TestPlatform\vstest.console.exe" ./UnitTest/UnitTest.dll

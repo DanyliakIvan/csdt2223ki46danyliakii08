@@ -1,4 +1,6 @@
 #include "Lab_2.h"
+#include "check_correctness.h"
+
 
 CSDT::CSDT(QWidget *parent)
     : QWidget(parent)
@@ -23,7 +25,7 @@ CSDT::CSDT(QWidget *parent)
     textWrite = new QLineEdit(this);
     textWrite->setGeometry(20, 250, 600, 30);
     textWrite->setFont(QFont("MS Shell diq 2", 12));
-    textWrite->setPlaceholderText("Less than 30 symbols! Rest of message will be rejected!");
+    textWrite->setPlaceholderText("Less than 30 symbols!");
 
     //creating comboBox for choice COM port
     comboBox = new QComboBox(this);
@@ -65,7 +67,19 @@ void CSDT::OnSendPressed()
 {
     QString message;
     message = textWrite->text();
-    message = message.left(30);
+
+    //check message for correctness
+
+    QString receiveCheckedMessage = checkmessage(message);
+
+    if(receiveCheckedMessage != message)
+    {
+         QMessageBox::critical(this, "MESSAGE IS NOT CORRECT", "Error detalis:\n\n" + receiveCheckedMessage + ".");
+         return;
+    }
+
+    if(errorCheckingWithCOM()) return;
+
     sendMessage(message);
     serial->waitForReadyRead(350);
 
@@ -88,17 +102,8 @@ void CSDT::OnOpenPressed()
     serial->setStopBits(QSerialPort::OneStop);
     serial->setFlowControl(QSerialPort::NoFlowControl);
 
-    if(!serial->open(QIODevice::ReadWrite))
-    {
-        labelERROR->setText("Failed to open!");
-        QMessageBox::critical(this, "SERIAL PORT NOT CONNECTED", "Unable to connect to this COM port.\n\nPlease check your connections\nand try again.");
-    }
-    else
-    {
-        connect(serial, &QSerialPort::readyRead, this, &CSDT::receiveMessage);
-        //connect(serial, SIGNAL(readyRead()), this, SLOT(receiveMessage()));
-        labelERROR->setText("Connected!");
-    }
+    errorCheckingWithCOM();
+
     QByteArray dataBA = serial->readAll();
 }
 
@@ -114,6 +119,8 @@ void CSDT::OnClosePressed()
 
 void CSDT::sendMessage(QString message)
 {
+    //errorCheckingWithCOM();
+
     serial->write(message.toUtf8());
     serial->waitForBytesWritten(50);
 }
@@ -124,6 +131,22 @@ void CSDT::receiveMessage()
     QString message(dataBA);
 
     receiveBuffer += message;
+}
+
+bool CSDT::errorCheckingWithCOM()
+{
+    if(!serial->open(QIODevice::ReadWrite))
+    {
+        labelERROR->setText("Failed to open!");
+        QMessageBox::critical(this, "SERIAL PORT NOT CONNECTED", "Unable to connect to this COM port.\n\nPlease check your connections\nand try again.");
+        return 1;
+    }
+    else
+    {
+        connect(serial, &QSerialPort::readyRead, this, &CSDT::receiveMessage);
+        labelERROR->setText("Connected!");
+        return 0;
+    }
 }
 
 QString CSDT::preparingTextForOutput(QString message, QString sendedOrReceive)
