@@ -1,0 +1,31 @@
+name: build_3 CI
+
+on: [workflow_dispatch]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
+
+    - name: Setup .NET
+      
+      uses: microsoft/setup-msbuild@v1
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v1.1.1
+       
+    - name: Build script
+      run:  sh CI/Build.sh
+            
+    - name: Test script
+      run:  sh CI/Test.sh
+  
+
+    - name: Upload build
+      uses: actions/upload-artifact@v3
+      with:
+       name: task_3_Danyliak
+       path: Client\bin\Debug
