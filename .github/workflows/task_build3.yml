@@ -1,0 +1,63 @@
+name: build_task3
+
+on: [workflow_dispatch]
+
+env:
+  BUILD_TYPE: Release
+  
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+     - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+     - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+     - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+     
+     - name: Check out repository code 
+       uses: actions/checkout@v3 
+       
+     - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner." 
+     - run: echo "🖥 The workflow is now ready to test your code on the runner." 
+       
+     - name: List files in the repository 
+       run: | 
+         ls ${{ github.workspace }} 
+        
+
+     - name: Setup cmake
+       uses: jwlawson/actions-setup-cmake@v1.13
+       with:
+         cmake-version: '3.16.x'
+     - name: Use cmake
+       run: cmake --version
+      
+     - name: Set up Visual Studio shell
+       uses: egor-tensin/vs-shell@v2
+       with:
+        arch: x64
+    
+            
+     - name: Install Qt
+       uses: jurplel/install-qt-action@v3
+       with:
+        version: '5.15.2'
+        tools: tools_ifw tools_qtcreator,qt.tools.qtcreator
+        host: 'windows'
+        target: 'desktop'
+        arch: 'win64_msvc2019_64'
+      
+      
+     - name: Build script
+       run:  sh Build.sh
+            
+     - name: Test script
+       run:  sh Test.sh
+       
+       
+     - name: Upload exe
+       uses: actions/upload-artifact@v3
+       with:
+        name: task2_Danyliak
+        path: Client\bin\Debug\Client

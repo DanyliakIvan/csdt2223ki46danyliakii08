@@ -1,5 +1,5 @@
 #include "Lab_2.h"
-#include "check_correctness.h"
+//#include "check_correctness.h"
 
 
 CSDT::CSDT(QWidget *parent)
@@ -44,19 +44,23 @@ CSDT::CSDT(QWidget *parent)
     sendButton = new QPushButton("Send", this);
     openButton = new QPushButton("Open", this);
     closeButton = new QPushButton("Close", this);
+    openDBButton = new QPushButton("Connect to DB", this);
 
     sendButton->setGeometry(650, 250, 70, 30);
     openButton->setGeometry(650, 110, 70, 30);
     closeButton->setGeometry(650, 170, 70, 30);
+    openDBButton->setGeometry(650, 280, 70, 30);
 
     sendButton->setFont(QFont("MS Shell diq 2", 12));
     openButton->setFont(QFont("MS Shell diq 2", 12));
     closeButton->setFont(QFont("MS Shell diq 2", 12));
+    openDBButton->setFont(QFont("MS Shell diq 2", 12));
 
     //connecting buttons and functions
     connect(sendButton, &QPushButton::clicked, this, &CSDT::OnSendPressed);
     connect(openButton, &QPushButton::clicked, this, &CSDT::OnOpenPressed);
     connect(closeButton, &QPushButton::clicked, this, &CSDT::OnClosePressed);
+    connect(openDBButton, &QPushButton::clicked, this, &CSDT::OnConectionToDB);
 
     //creating an instance for working with COM port
     serial = new QSerialPort(this);
@@ -72,20 +76,20 @@ void CSDT::OnSendPressed()
 
     QString receiveCheckedMessage = checkmessage(message);
 
-    if(receiveCheckedMessage != message)
+    /*if(receiveCheckedMessage != message)
     {
          QMessageBox::critical(this, "MESSAGE IS NOT CORRECT", "Error detalis:\n\n" + receiveCheckedMessage + ".");
          return;
-    }
+    }*/
 
-    if(errorCheckingWithCOM()) return;
+    //if(errorCheckingWithCOM()) return;
 
     sendMessage(message);
-    serial->waitForReadyRead(350);
-
     outputBuffer = preparingTextForOutput(message, "sended");
+    serial->waitForReadyRead(350);
     outputBuffer += preparingTextForOutput(receiveBuffer, "received");
 
+    SendDataToDB();
     textShow->append(outputBuffer);
 
     receiveBuffer = "";
@@ -102,7 +106,7 @@ void CSDT::OnOpenPressed()
     serial->setStopBits(QSerialPort::OneStop);
     serial->setFlowControl(QSerialPort::NoFlowControl);
 
-    errorCheckingWithCOM();
+    //errorCheckingWithCOM();
 
     QByteArray dataBA = serial->readAll();
 }
@@ -158,13 +162,70 @@ QString CSDT::preparingTextForOutput(QString message, QString sendedOrReceive)
     outputMessage.append(QTime::currentTime().toString(Qt::ISODate));
     outputMessage.append((sendedOrReceive == "sended")?("] [sended]:   "):("] [received]: "));
     outputMessage.append(message);
+
     if(sendedOrReceive == "sended")
+    {
+        JSON.insert("SerialNumber", serialNumberOfTheRequest++);
+        JSON.insert("DataIn", QDate::currentDate().toString(Qt::ISODate));
+        JSON.insert("TimeIn", QTime::currentTime().toString(Qt::ISODate));
+        JSON.insert("MessageIn", message);
+
         outputMessage.append("\n");
+    }
+    else
+    {
+        JSON.insert("DataOut", QDate::currentDate().toString(Qt::ISODate));
+        JSON.insert("TimeOut", QTime::currentTime().toString(Qt::ISODate));
+        JSON.insert("MessageOut", message);
+    }
 
     return outputMessage;
 }
 
+void CSDT::OnConectionToDB()
+{
+    db = QSqlDatabase::addDatabase("QODBC");
+
+    db.setConnectOptions();
+
+    db.setDatabaseName("DRIVER={SQL Server};SERVER=VANO\\MSSQLSERVER01;DATABASE=ForCSDT;UID=sa;Trusted_Connection=Yes;");
+
+    if(db.open())
+        labelERROR->setText("Connected");
+    else
+        labelERROR->setText("The database is not connected");
+}
+
+void CSDT::SendDataToDB()
+{
+    QSqlQuery * query = new QSqlQuery();
+    query->prepare("INSERT INTO task4_db_for_CSDT_Danyliak(DataIn,TimeIn,MessageIn,DataOut,TimeOut,MessageOut) "
+                   "VALUES(:DataIn,:TimeIn,:MessageIn,:DataOut,:TimeOut,:MessageOut)");
+
+    query->bindValue(":DataIn", JSON["DataIn"].toString());
+    query->bindValue(":TimeIn", JSON["TimeIn"].toString());
+    query->bindValue(":MessageIn", JSON["MessageIn"].toString());
+    query->bindValue(":DataOut", JSON["DataOut"].toString());
+    query->bindValue(":TimeOut", JSON["TimeOut"].toString());
+    query->bindValue(":MessageOut", JSON["MessageOut"].toString());
+
+    if(!query->exec())
+    {
+        QMessageBox::critical(this, "The data was not writen in DB", "Looks like something went wrong.\n\nPlease check your connections\nand try again.");
+    }
+}
+
 CSDT::~CSDT()
 {
+    delete label1;
+    delete label2;
+    delete labelERROR;
+    delete textWrite;
+    delete sendButton;
+    delete openButton;
+    delete closeButton;
+    delete openDBButton;
+    delete comboBox;
+    delete textShow;
     delete serial;
 }

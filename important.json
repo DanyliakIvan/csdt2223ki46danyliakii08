@@ -1,0 +1,3 @@
+{
+	db.setDatabaseName("DRIVER={SQL Server};SERVER=VANO\\MSSQLSERVER01;DATABASE=ForCSDT;UID=sa;Trusted_Connection=Yes;");
+}

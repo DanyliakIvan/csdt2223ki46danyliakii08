@@ -2,7 +2,11 @@
 
 QString checkmessage(QString message)
 {
-    if(message.size() > 30)
+    if(message.size() == 0)
+    {
+        return "Message field must contain at least one characters!";
+    }
+    else if(message.size() > 30)
     {
         return "Message must be less than 31 characters!";
     }

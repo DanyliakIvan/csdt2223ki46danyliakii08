@@ -1,2 +1,2 @@
-nuget restore ./CSDT/CSDT.pro
-MSBuild.exe ./CSDT/CSDT.pro
+qmake Client/CSDT.pro
+make
