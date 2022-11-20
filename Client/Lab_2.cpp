@@ -49,7 +49,7 @@ CSDT::CSDT(QWidget *parent)
     sendButton->setGeometry(650, 250, 70, 30);
     openButton->setGeometry(650, 110, 70, 30);
     closeButton->setGeometry(650, 170, 70, 30);
-    openDBButton->setGeometry(650, 280, 70, 30);
+    openDBButton->setGeometry(590, 300, 130, 30);
 
     sendButton->setFont(QFont("MS Shell diq 2", 12));
     openButton->setFont(QFont("MS Shell diq 2", 12));
@@ -76,13 +76,14 @@ void CSDT::OnSendPressed()
 
     QString receiveCheckedMessage = checkmessage(message);
 
-    /*if(receiveCheckedMessage != message)
+    if(receiveCheckedMessage != message)
     {
          QMessageBox::critical(this, "MESSAGE IS NOT CORRECT", "Error detalis:\n\n" + receiveCheckedMessage + ".");
          return;
-    }*/
+    }
 
-    //if(errorCheckingWithCOM()) return;
+    if(!serial->isOpen()) return;
+
 
     sendMessage(message);
     outputBuffer = preparingTextForOutput(message, "sended");
@@ -106,7 +107,7 @@ void CSDT::OnOpenPressed()
     serial->setStopBits(QSerialPort::OneStop);
     serial->setFlowControl(QSerialPort::NoFlowControl);
 
-    //errorCheckingWithCOM();
+    errorCheckingWithCOM();
 
     QByteArray dataBA = serial->readAll();
 }
@@ -159,7 +160,7 @@ QString CSDT::preparingTextForOutput(QString message, QString sendedOrReceive)
 
     outputMessage.append("[" + QDate::currentDate().toString(Qt::ISODate));
     outputMessage.append("] [");
-    outputMessage.append(QTime::currentTime().toString(Qt::ISODate));
+    outputMessage.append(QTime::currentTime().toString(Qt::ISODateWithMs));
     outputMessage.append((sendedOrReceive == "sended")?("] [sended]:   "):("] [received]: "));
     outputMessage.append(message);
 
@@ -167,7 +168,7 @@ QString CSDT::preparingTextForOutput(QString message, QString sendedOrReceive)
     {
         JSON.insert("SerialNumber", serialNumberOfTheRequest++);
         JSON.insert("DataIn", QDate::currentDate().toString(Qt::ISODate));
-        JSON.insert("TimeIn", QTime::currentTime().toString(Qt::ISODate));
+        JSON.insert("TimeIn", QTime::currentTime().toString(Qt::ISODateWithMs));
         JSON.insert("MessageIn", message);
 
         outputMessage.append("\n");
@@ -175,7 +176,7 @@ QString CSDT::preparingTextForOutput(QString message, QString sendedOrReceive)
     else
     {
         JSON.insert("DataOut", QDate::currentDate().toString(Qt::ISODate));
-        JSON.insert("TimeOut", QTime::currentTime().toString(Qt::ISODate));
+        JSON.insert("TimeOut", QTime::currentTime().toString(Qt::ISODateWithMs));
         JSON.insert("MessageOut", message);
     }
 
