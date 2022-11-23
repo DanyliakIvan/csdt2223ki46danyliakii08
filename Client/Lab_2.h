@@ -43,6 +43,7 @@ private:
     void receiveMessage();
     void PREreceiveMessage();
     QString preparingTextForOutput(QString, QString);
+    bool errorCheckingWithCOM();
 
 private slots:
     void OnSendPressed();
